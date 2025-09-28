@@ -168,87 +168,109 @@ console.log('[VITE] Aliases configured:', Object.keys(aliases));
 // ============================================
 export default defineConfig({
 
-
   // ============================================
   // PLUGINS
   // ============================================
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Custom plugin to transform HTML during build
+    {
+      name: 'multiserver-html-transform',
+      transformIndexHtml: {
+        enforce: 'pre',
+        transform(html, context) {
+          // Extract server name from file path
+          let serverName = 'main';
+          if (context.filename.includes('webshell')) {
+            serverName = 'develrun';
+          } else if (context.filename.includes('serverdos')) {
+            serverName = 'justlearning';
+          }
+          
+          // Replace relative JSX path with generated asset path
+          return html.replace(
+            /src="[^"]*\/src\/[^"]+\/main\.jsx"/,
+            `src="/assets/${serverName}-[hash].js"`
+          );
+        }
+      }
+    }
+  ],
 
-                            // ============================================
-                            // GLOBAL DEFINITIONS
-                            // ============================================
-                            define: {
-                              global: 'globalThis',
-                              'process.env': {
-                                REACT_APP_SHELL_URI: JSON.stringify(process.env.REACT_APP_SHELL_URI),
-                            VITE_SHELL_URI: JSON.stringify(process.env.VITE_SHELL_URI),
+  // ============================================
+  // GLOBAL DEFINITIONS
+  // ============================================
+  define: {
+    global: 'globalThis',
+    'process.env': {
+      REACT_APP_SHELL_URI: JSON.stringify(process.env.REACT_APP_SHELL_URI),
+      VITE_SHELL_URI: JSON.stringify(process.env.VITE_SHELL_URI),
+      // Inject configuration for the frontend
+      MICROSERVERS_CONFIG: JSON.stringify({
+        servers: config.servers.map(server => ({
+          name: server.name,
+          domains: server.domains,
+          features: server.server.features,
+          paths: server.paths
+        })),
+        default: config.default
+      })
+    }
+  },
 
+  // ============================================
+  // DEV SERVER CONFIGURATION
+  // ============================================
+  server: {
+    port: config.global.dev.port,
+    host: config.global.dev.host,
+    proxy: devProxies
+  },
 
-                            // Inject configuration for the frontend
-                            MICROSERVERS_CONFIG: JSON.stringify({
-                              servers: config.servers.map(server => ({
-                                name: server.name,
-                                domains: server.domains,
-                                features: server.server.features,
-                                paths: server.paths
-                              })),
-                              default: config.default
-                            })
-                              }
-                            },
+  // ============================================
+  // BUILD CONFIGURATION
+  // ============================================
+  build: {
+    outDir: config.global.build.outDir,
+    sourcemap: config.global.build.sourcemap,
+    chunkSizeWarningLimit: config.global.build.chunkSizeWarningLimit,
 
+    rollupOptions: {
+      input: buildInputs,
 
+      output: {
+        manualChunks: manualChunks,
+        chunkFileNames: config.global.build.chunkFileNames,
+        
+        // Configure entry file names to match what HTML expects
+        entryFileNames: (chunkInfo) => {
+          return `assets/${chunkInfo.name}-[hash].js`;
+        },
 
-                            // ============================================
-                            // DEV SERVER CONFIGURATION
-                            // ============================================
-                            server: {
-                              port: config.global.dev.port,
-                              host: config.global.dev.host,
-                              proxy: devProxies
-                            },
+        assetFileNames: (assetInfo) => {
+          const info = assetInfo.name.split('.');
+          const ext = info[info.length - 1];
 
+          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
+            return config.global.build.assetFileNames.images;
+          }
 
-                            // ============================================
-                            // BUILD CONFIGURATION
-                            // ============================================
-                            build: {
-                              outDir: config.global.build.outDir,
-                              sourcemap: config.global.build.sourcemap,
-                              chunkSizeWarningLimit: config.global.build.chunkSizeWarningLimit,
+          if (/css/i.test(ext)) {
+            return config.global.build.assetFileNames.css;
+          }
 
-                              rollupOptions: {
-                                input: buildInputs,
+          return config.global.build.assetFileNames.default;
+        }
+      }
+    }
+  },
 
-                                output: {
-                                  manualChunks: manualChunks,
-
-                                  chunkFileNames: config.global.build.chunkFileNames,
-
-                                  assetFileNames: (assetInfo) => {
-                                    const info = assetInfo.name.split('.');
-                                    const ext = info[info.length - 1];
-
-                                    if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
-                                      return config.global.build.assetFileNames.images;
-                                    }
-
-                                    if (/css/i.test(ext)) {
-                                      return config.global.build.assetFileNames.css;
-                                    }
-
-                                    return config.global.build.assetFileNames.default;
-                                  }
-                                }
-                              }
-                            },
-
-                            // ============================================
-                            // RESOLVE CONFIGURATION
-                            // ============================================
-                            resolve: {
-                              alias: aliases
-                            }
+  // ============================================
+  // RESOLVE CONFIGURATION
+  // ============================================
+  resolve: {
+    alias: aliases
+  }
 })
 
 // ============================================
