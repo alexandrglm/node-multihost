@@ -163,78 +163,61 @@ console.log('[VITE] Aliases configured:', Object.keys(aliases));
 // ============================================
 export default defineConfig({
 
-  // ============================================
-  // PLUGINS FIX 3
-  // ============================================
   plugins: [
     react(),
-  
-    // PLUGIN 1, PREPROCESS, Custom plugin to transform HTML during build
-    {
-      name: 'multiserver-html-transform',
-      transformIndexHtml: {
-      
-        order: 'pre',
-      
-        handler(html, context) {
-      
-      
-          // NO HARDCODED
-          const matchedServer = config.servers.find(server => 
-      
-            context.filename.includes(server.paths.public) ||
-            context.filename.includes(server.paths.html.replace('.html', ''))
-      
-          );
-          
-          if (!matchedServer) {
-      
-            console.warn('[PLUGIN] No server matched for:', context.filename);
-            return html;
-          }
-          
-          return html.replace(
-            /src="[^"]*\/src\/[^"]+\/main\.jsx"/,
-            `src="/assets/${matchedServer.name}-[hash].js"`
-          );
-        }
-      }
-    },
-    // PLUGIN 2 -> POSTPROCESS
-    {
-      name: 'post-build-fix',
-      closeBundle() {
-        const fs = require('fs');
-        const path = require('path');
-        const glob = require('glob');
-        
-        console.log('[POST-BUILD] Fixing HTML references...');
-        
-        // Buscar HTML files generados
-        const htmlFiles = glob.sync('dist/**/*.html');
-        
-        htmlFiles.forEach(htmlFile => {
-          let content = fs.readFileSync(htmlFile, 'utf8');
-          
-          // Detectar servidor por path del archivo
-          const serverName = htmlFile.includes('webshell') ? 'develrun' : 'justlearning';
-          
-          // Buscar archivo JS correspondiente
-          const jsFiles = glob.sync(`dist/assets/${serverName}-*.js`);
-          
-          if (jsFiles.length > 0) {
-            const jsPath = jsFiles[0].replace('dist', '');
-            content = content.replace(
-              /src="[^"]*\/src\/[^"]+\/main\.jsx"/g,
-              `src="${jsPath}"`
-            );
-            
-            fs.writeFileSync(htmlFile, content);
-            console.log(`[POST-BUILD] Fixed ${htmlFile} -> ${jsPath}`);
-          }
-        });
-      }
-    }
+
+                            // PLUGIN 1: Transform HTML durante build
+                            {
+                              name: 'multiserver-html-transform',
+                              transformIndexHtml: {
+                                order: 'pre',
+                                handler(html, context) {
+                                  const matchedServer = config.servers.find(server =>
+                                  context.filename.includes(server.paths.public) ||
+                                  context.filename.includes(server.paths.html.replace('.html', ''))
+                                  );
+
+                                  if (!matchedServer) {
+                                    return html;
+                                  }
+
+                                  return html.replace(
+                                    /src="[^"]*\/src\/[^"]+\/main\.jsx"/,
+                                    `src="/assets/${matchedServer.name}-[hash].js"`
+                                  );
+                                }
+                              }
+                            },
+
+                            // PLUGIN 2: Post-build fix con imports dinámicos
+                            {
+                              name: 'post-build-fix',
+                              async closeBundle() {
+                                const fs = await import('fs');
+                                const { glob } = await import('glob');
+
+                                console.log('[POST-BUILD] Fixing HTML references...');
+
+                                const htmlFiles = await glob.glob('dist/**/*.html');
+
+                                for (const htmlFile of htmlFiles) {
+                                  let content = fs.readFileSync(htmlFile, 'utf8');
+                                  const serverName = htmlFile.includes('webshell') ? 'develrun' : 'justlearning';
+                                  const jsFiles = await glob.glob(`dist/assets/${serverName}-*.js`);
+
+                                  if (jsFiles.length > 0) {
+                                    const jsPath = jsFiles[0].replace('dist', '');
+                                    content = content.replace(
+                                      /src="[^"]*\/src\/[^"]+\/main\.jsx"/g,
+                                      `src="${jsPath}"`
+                                    );
+
+                                    fs.writeFileSync(htmlFile, content);
+                                    console.log(`[POST-BUILD] Fixed ${htmlFile} -> ${jsPath}`);
+                                  }
+                                }
+                              }
+                            }
   ],
 
   // ============================================
