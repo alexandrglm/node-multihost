@@ -158,7 +158,7 @@ export function setupDomainRouting(app) {
         // ============================================
         // Build HTML file path from configuration
         const htmlFile = path.join(serverConfig.paths.public, serverConfig.paths.html);
-        const fullHtmlPath = path.join(process.cwd(), 'dist', htmlFile);
+        const fullHtmlPath = path.join(process.cwd(), 'dist', 'public', htmlFile);
 
         console.log(`[ROUTING] Serving SPA: ${htmlFile} for module: ${req.targetModule}`);
         console.log(`[ROUTING] Full path: ${fullHtmlPath}`);
