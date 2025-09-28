@@ -1,0 +1,91 @@
+{
+    "name": "node-multihost",
+    "version": "0.1.0",
+    "type": "module",
+    "description": "Multi-server routing framework for hosting multiple domains on a single Node.js instance",
+    "author": "alexandrglm",
+    "license": "MIT",
+    "engines": {
+        "node": ">=18.0.0",
+        "npm": ">=9.0.0"
+    },
+    "scripts": {
+        "dev": "vite --host 0.0.0.0 --port 7777",
+        "start": "vite --host 0.0.0.0 --port 7777 --open",
+        "build": "vite build",
+        "deploy": "node server.js",
+        "preview": "vite preview --port 8080 --host 0.0.0.0 --open",
+        "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+        "lint:fix": "eslint . --ext js,jsx --fix",
+        "clean": "rm -rf ./dist ./node_modules/.vite",
+        "clean:all": "rm -rf ./dist ./node_modules ./package-lock.json",
+        "reinstall": "rm -rf ./dist ./node_modules ./package-lock.json && npm install"
+    },
+    "dependencies": {
+        "@fortawesome/fontawesome-svg-core": "^7.0.1",
+        "@fortawesome/free-brands-svg-icons": "^7.0.1",
+        "@fortawesome/free-solid-svg-icons": "^7.0.1",
+        "@fortawesome/react-fontawesome": "^3.0.2",
+        "@reduxjs/toolkit": "^2.9.0",
+        "bcrypt": "^6.0.0",
+        "cors": "^2.8.5",
+        "dotenv": "^17.2.2",
+        "express": "^5.1.0",
+        "express-rate-limit": "^8.1.0",
+        "framer-motion": "^11.18.2",
+        "jsonwebtoken": "^9.0.2",
+        "node-pty": "^1.0.0",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "react-fontawesome": "^1.7.1",
+        "react-redux": "^9.2.0",
+        "react-router-dom": "^7.9.3",
+        "socket.io": "^4.8.1",
+        "socket.io-client": "^4.8.1",
+        "three": "^0.168.0"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.36.0",
+        "@types/react": "^18.3.24",
+        "@types/react-dom": "^18.3.7",
+        "@vitejs/plugin-react": "^4.7.0",
+        "concurrently": "^9.2.1",
+        "eslint": "^9.36.0",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-hooks": "^5.2.0",
+        "eslint-plugin-react-refresh": "^0.4.22",
+        "globals": "^15.15.0",
+        "nodemon": "^3.1.10",
+        "prettier": "^3.6.2",
+        "sass": "^1.93.2",
+        "vite": "^5.4.20"
+    },
+    "keywords": [
+        "multiserver",
+        "routing",
+        "microservices",
+        "domain-routing",
+        "vite",
+        "react",
+        "express",
+        "framework",
+        "nodejs",
+        "free-tier"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/alexandrglm/node-multihost.git"
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    }
+}

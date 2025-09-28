@@ -1,0 +1,71 @@
+{
+  "global": {
+    "dev": {
+      "port": "",
+      "host": "",
+      "proxies": [
+        { "path": "", "target": "" }
+      ]
+    },
+    "build": {
+      "outDir": "",
+      "sourcemap": false,
+      "chunkSizeWarningLimit": 0,
+      "assetFileNames": {
+        "images": "",
+        "css": "",
+        "default": ""
+      },
+      "chunkFileNames": ""
+    },
+    "chunks": {
+      "vendor": [],
+      "socket": [],
+      "database": []
+    },
+    "aliases": {
+      "@server": "",
+      "@public": ""
+    }
+  },
+  "servers": [
+    {
+      "id": 0,
+      "name": "",
+      "description": "",
+      "domains": [],
+      "paths": {
+        "src": "",
+        "public": "",
+        "server": "",
+        "html": "",
+        "app": "",
+        "main": ""
+      },
+      "server": {
+        "setupFunction": "",
+        "file": "",
+        "routes": [],
+        "skipSPA": [],
+        "features": {
+          "socketio": false,
+          "cors": false,
+          "rateLimit": false,
+          "authentication": false,
+          "mongodb": false,
+          "redis": false,
+          "ssl": false
+        }
+      },
+      "database": {
+        "type": "",
+        "connection": "",
+        "models": []
+      }
+    }
+  ],
+  "default": {
+    "serverId": 0,
+    "serverName": ""
+  }
+}
