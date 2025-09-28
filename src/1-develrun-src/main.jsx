@@ -6,6 +6,9 @@ import ReactDOM from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { store } from './store/store.js'
 
+// MANDATORY!!!
+import './styles/main.scss';
+
 import AppDevelrun from './App-Develrun.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
