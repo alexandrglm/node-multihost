@@ -6,7 +6,7 @@
 
 Milk every drop of the very limited free-tier accounts on services like Render.com
 
-![head](./head-min.png)
+![head](./README/head-min.png)
 
 A Dev/Prod. framework that enables hosting multiple independent web applications (microservers) within a single.
 
@@ -292,13 +292,11 @@ VITE 100% DYNAMIC CONFIGURATION LOADED
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-![prod](./Screenshot_20250928_012444.png)
+![prod](./README/Screenshot_20250928_012444.png)
 
 ---
 
 ### Environment Configuration
-
-
 
 #### **Local Development**
 
@@ -308,13 +306,13 @@ VITE 100% DYNAMIC CONFIGURATION LOADED
 ### **Production (Render, Heroku, etc...)**
 
 - Upload configuration as Secret File: `/etc/secrets/servers.config.json`. 
+
 - Set environment variables in Render dashboard
+
 - Framework automatically detects and uses secret file
   
-  ![Render Build-Deploy config](./Screenshot_20250928_021301.png)
+  ![Render Build-Deploy config](./README/Screenshot_20250928_021301.png)
 
 ---
-
-
 
 
