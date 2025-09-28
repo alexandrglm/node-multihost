@@ -15,8 +15,8 @@ const Navbar = () => {
     }
 
     const logoSrc = theme === 'light'
-        ? `${window.location.origin}/1-develrun-public/logo-light.png`
-        : `${window.location.origin}/1-develrun-public/logo-dark.png`;
+        ? `${window.location.origin}/logo-light.png`
+        : `${window.location.origin}/logo-dark.png`;
 
     return (
 
