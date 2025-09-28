@@ -166,28 +166,6 @@ export default defineConfig({
   plugins: [
     react(),
 
-                            // PLUGIN 1: Transform HTML durante build
-                            {
-                              name: 'multiserver-html-transform',
-                              transformIndexHtml: {
-                                order: 'pre',
-                                handler(html, context) {
-                                  const matchedServer = config.servers.find(server =>
-                                  context.filename.includes(server.paths.public) ||
-                                  context.filename.includes(server.paths.html.replace('.html', ''))
-                                  );
-
-                                  if (!matchedServer) {
-                                    return html;
-                                  }
-
-                                  return html.replace(
-                                    /src="[^"]*\/src\/[^"]+\/main\.jsx"/,
-                                    `src="/assets/${matchedServer.name}-[hash].js"`
-                                  );
-                                }
-                              }
-                            },
 
                             // PLUGIN 2: Post-build fix con imports dinámicos
                             {
