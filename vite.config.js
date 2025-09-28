@@ -164,12 +164,12 @@ console.log('[VITE] Aliases configured:', Object.keys(aliases));
 export default defineConfig({
 
   // ============================================
-  // PLUGINS FIX 2
+  // PLUGINS FIX 3
   // ============================================
   plugins: [
     react(),
   
-    // Custom plugin to transform HTML during build
+    // PLUGIN 1, PREPROCESS, Custom plugin to transform HTML during build
     {
       name: 'multiserver-html-transform',
       transformIndexHtml: {
@@ -198,6 +198,41 @@ export default defineConfig({
             `src="/assets/${matchedServer.name}-[hash].js"`
           );
         }
+      }
+    },
+    // PLUGIN 2 -> POSTPROCESS
+    {
+      name: 'post-build-fix',
+      closeBundle() {
+        const fs = require('fs');
+        const path = require('path');
+        const glob = require('glob');
+        
+        console.log('[POST-BUILD] Fixing HTML references...');
+        
+        // Buscar HTML files generados
+        const htmlFiles = glob.sync('dist/**/*.html');
+        
+        htmlFiles.forEach(htmlFile => {
+          let content = fs.readFileSync(htmlFile, 'utf8');
+          
+          // Detectar servidor por path del archivo
+          const serverName = htmlFile.includes('webshell') ? 'develrun' : 'justlearning';
+          
+          // Buscar archivo JS correspondiente
+          const jsFiles = glob.sync(`dist/assets/${serverName}-*.js`);
+          
+          if (jsFiles.length > 0) {
+            const jsPath = jsFiles[0].replace('dist', '');
+            content = content.replace(
+              /src="[^"]*\/src\/[^"]+\/main\.jsx"/g,
+              `src="${jsPath}"`
+            );
+            
+            fs.writeFileSync(htmlFile, content);
+            console.log(`[POST-BUILD] Fixed ${htmlFile} -> ${jsPath}`);
+          }
+        });
       }
     }
   ],
