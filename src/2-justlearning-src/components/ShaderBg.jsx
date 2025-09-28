@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react'
 import * as THREE from 'three'
 
-import logoSrc from '/2-justlearning-public/assets/logo_web_2.png'
+import logoSrc from '/2-justlearning-public/logo_web_2.png'
 
 const ShaderBackground = () => {
     const mountRef = useRef(null)
