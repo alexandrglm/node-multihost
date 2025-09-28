@@ -181,18 +181,32 @@ export default defineConfig({
                                 for (const htmlFile of htmlFiles) {
                                   let content = fs.readFileSync(htmlFile, 'utf8');
                                   const serverName = htmlFile.includes('webshell') ? 'develrun' : 'justlearning';
-                                  const jsFiles = await glob.glob(`dist/assets/${serverName}-*.js`);
 
+                                  // Fix JS references
+                                  const jsFiles = await glob.glob(`dist/assets/${serverName}-*.js`);
                                   if (jsFiles.length > 0) {
                                     const jsPath = jsFiles[0].replace('dist', '');
                                     content = content.replace(
                                       /src="[^"]*\/src\/[^"]+\/main\.jsx"/g,
                                       `src="${jsPath}"`
                                     );
-
-                                    fs.writeFileSync(htmlFile, content);
-                                    console.log(`[POST-BUILD] Fixed ${htmlFile} -> ${jsPath}`);
                                   }
+
+                                  // Fix CSS references
+                                  const cssFiles = await glob.glob(`dist/assets/${serverName}-*.css`);
+                                  if (cssFiles.length > 0) {
+                                    const cssPath = cssFiles[0].replace('dist', '');
+                                    // Add CSS link if not present
+                                    if (!content.includes('<link') && content.includes('</head>')) {
+                                      content = content.replace(
+                                        '</head>',
+                                        `  <link rel="stylesheet" href="${cssPath}">\n</head>`
+                                      );
+                                    }
+                                  }
+
+                                  fs.writeFileSync(htmlFile, content);
+                                  console.log(`[POST-BUILD] Fixed ${htmlFile}`);
                                 }
                               }
                             }
