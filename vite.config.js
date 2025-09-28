@@ -45,27 +45,22 @@ try {
 
 
 // ============================================
-// GENERATE DYNAMIC BUILD INPUTS FIX -> Via JSX
+// GENERATE DYNAMIC BUILD INPUTS FIX 2 -> Via HTMLs
 // ============================================
 const buildInputs = {};
 
 config.servers.forEach(server => {
 
-  const jsxPath = `./src/${server.paths.src}/${server.paths.main}`;
-  
-  if (fs.existsSync(jsxPath)) {
-  
-    buildInputs[server.name] = jsxPath;
-    console.log(`[VITE] Added build input: ${server.name} → ${jsxPath}`);
-  
-  } else {
-  
-    console.warn(`[VITE] WARNING: JSX file not found: ${jsxPath}`);
-  
+  const htmlPath = `./public/${server.paths.public}/${server.paths.html}`;
+
+
+  if (fs.existsSync(htmlPath)) {
+
+    buildInputs[server.name] = htmlPath;
+
   }
 
 });
-
 console.log('[VITE] Build inputs configured:', Object.keys(buildInputs));
 
 
@@ -169,28 +164,38 @@ console.log('[VITE] Aliases configured:', Object.keys(aliases));
 export default defineConfig({
 
   // ============================================
-  // PLUGINS
+  // PLUGINS FIX 2
   // ============================================
   plugins: [
     react(),
+  
     // Custom plugin to transform HTML during build
     {
       name: 'multiserver-html-transform',
       transformIndexHtml: {
-        enforce: 'pre',
-        transform(html, context) {
-          // Extract server name from file path
-          let serverName = 'main';
-          if (context.filename.includes('webshell')) {
-            serverName = 'develrun';
-          } else if (context.filename.includes('serverdos')) {
-            serverName = 'justlearning';
+      
+        order: 'pre',
+      
+        handler(html, context) {
+      
+      
+          // NO HARDCODED
+          const matchedServer = config.servers.find(server => 
+      
+            context.filename.includes(server.paths.public) ||
+            context.filename.includes(server.paths.html.replace('.html', ''))
+      
+          );
+          
+          if (!matchedServer) {
+      
+            console.warn('[PLUGIN] No server matched for:', context.filename);
+            return html;
           }
           
-          // Replace relative JSX path with generated asset path
           return html.replace(
             /src="[^"]*\/src\/[^"]+\/main\.jsx"/,
-            `src="/assets/${serverName}-[hash].js"`
+            `src="/assets/${matchedServer.name}-[hash].js"`
           );
         }
       }
