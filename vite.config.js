@@ -45,24 +45,25 @@ try {
 
 
 // ============================================
-// GENERATE DYNAMIC BUILD INPUTS
+// GENERATE DYNAMIC BUILD INPUTS FIX -> Via JSX
 // ============================================
 const buildInputs = {};
 
 config.servers.forEach(server => {
 
-  const htmlPath = `./public/${server.paths.public}/${server.paths.html}`;
-
-  if (fs.existsSync(htmlPath)) {
-
-    buildInputs[server.name] = htmlPath;
-    console.log(`[VITE] Added build input: ${server.name} â†' ${htmlPath}`);
-
+  const jsxPath = `./src/${server.paths.src}/${server.paths.main}`;
+  
+  if (fs.existsSync(jsxPath)) {
+  
+    buildInputs[server.name] = jsxPath;
+    console.log(`[VITE] Added build input: ${server.name} → ${jsxPath}`);
+  
   } else {
-
-    console.warn(`[VITE] WARNING: HTML file not found: ${htmlPath}`);
-
+  
+    console.warn(`[VITE] WARNING: JSX file not found: ${jsxPath}`);
+  
   }
+
 });
 
 console.log('[VITE] Build inputs configured:', Object.keys(buildInputs));
