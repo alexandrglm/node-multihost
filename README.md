@@ -1,20 +1,15 @@
-# # node-multihost
-
+# node-multihost
 ## Multi-Server Routing Framework
+A Dev/Prod. framework that enables hosting multiple independent web applications (microservers) within a single, using Node, React, Vite.  
+
+Each microserver maintains its own frontend, backend logic, and assets whilst sharing common infrastructure.  
+
+Domain-based routing automatically directs requests to the appropriate microserver.  
 
 ---
 
-Milk every drop of the very limited free-tier accounts on services like Render.com
-
+Milk every drop of the very limited free-tier accounts on services like Render.com ... or just keep an organised structure of multiple services where mandatory!  
 ![head](./README/head-min.png)
-
-A Dev/Prod. framework that enables hosting multiple independent web applications (microservers) within a single.
-
-Each microserver maintains its own frontend, backend logic, and assets whilst sharing common infrastructure.
-
-Domain-based routing automatically directs requests to the appropriate microserver.
-
-What you develop is exactly what you get. You can optimize server costs by **pushing to the limits the very limited free-tier options on platforms like Render.com**, ...or simply, maintain an organised structure of multiple services where necessary.
 
 ---
 
@@ -76,19 +71,334 @@ project/
         └── index-serverdos.html
 ```
 
+---
+
 ## Adding New Microservers
 
-New microservers are loaded dynamically based on configuration.
+New microservers are loaded dynamically based on configuration. The framework handles asset management, routing, and build processes automatically.
 
-1. **Update Configuration:** Add entry to `servers.config.json`
+### 1. Update Configuration
 
-2. **Create Directories:** Follow the established naming pattern
+Add entry to `servers.config.json`:
 
-3. **Implement Backend:** Create setup function in server directory
+```json
+{
+  "id": 3,
+  "name": "mynewserver",
+  "description": "My New Microserver",
+  "domains": ["mynewdomain.com", "localhost"],
+  "paths": {
+    "src": "3-mynewserver-src",
+    "public": "3-mynewserver-public",
+    "server": "3-mynewserver-src",
+    "html": "index-mynewserver.html",
+    "app": "App-Mynewserver.jsx",
+    "main": "main.jsx"
+  },
+  "server": {
+    "setupFunction": "setupMynewserver",
+    "file": "server-mynewserver.js",
+    "routes": ["/api/mynewserver"],
+    "skipSPA": ["/assets/", "/api/", "/mynewserver-api"],
+    "features": {
+      "socketio": false,
+      "cors": true,
+      "authentication": false
+    }
+  }
+}
+```
 
-4. **Implement Frontend:** Create React components in src & public directory
+### 2. Create Directory Structure
 
-5. **Build & Deploy:** System automatically adapts to new configuration
+Follow the established naming pattern:
+
+```
+project/
+├── src/
+│   └── 3-mynewserver-src/           # Frontend source
+│       ├── App-Mynewserver.jsx      # Main React app
+│       ├── main.jsx                 # Entry point
+│       ├── components/              # React components
+│       ├── hooks/                   # Custom hooks
+│       ├── styles/                  # SCSS/CSS files
+│       └── store/                   # Redux slices
+│
+├── public/
+│   └── 3-mynewserver-public/        # Static assets
+│       ├── index-mynewserver.html   # HTML template
+│       ├── logo.png                 # Static images
+│       └── favicon.ico              # Icons
+│
+└── server/
+    └── 3-mynewserver-src/           # Backend source
+        ├── server-mynewserver.js    # Server setup
+        ├── routes/                  # API routes
+        └── middleware/              # Custom middleware
+```
+
+### 3. Asset Management Guidelines
+
+#### Static Assets (Images, Icons, Fonts)
+
+**Location:** Place in `public/<server-name>-public/`
+
+**Accessing in React Components:**
+
+```jsx
+// Method 1: Dynamic imports (Recommended)
+import logoSrc from '/3-mynewserver-public/logo.png';
+
+const MyComponent = () => {
+  return <img src={logoSrc} alt="Logo" />;
+};
+
+
+
+// Method 2: Runtime paths (for dynamic themes)
+const MyNavbar = () => {
+  const { theme } = useSelector(state => state.app);
+
+  const logoSrc = theme === 'light'
+    ? `${window.location.origin}/public/3-mynewserver-public/logo-light.png`
+    : `${window.location.origin}/public/3-mynewserver-public/logo-dark.png`;
+
+  return <img src={logoSrc} alt="Logo" />;
+};
+
+
+
+// Method 3: Import multiple assets
+import logoLight from '/3-mynewserver-public/logo-light.png';
+import logoDark from '/3-mynewserver-public/logo-dark.png';
+
+const ThemeAwareLogo = () => {
+  const { theme } = useSelector(state => state.app);
+  return (
+    <img 
+      src={theme === 'light' ? logoLight : logoDark} 
+      alt="Logo" 
+    />
+  );
+};
+```
+
+#### CSS/SCSS Styles
+
+**Location:** Place in `src/<server-name>-src/styles/`
+
+**Import in React:**
+
+```jsx
+// Import global styles in EACH servers' main.jsx (or App-specific.jsx)
+import './styles/main.scss';
+
+// Import component-specific styles
+import './styles/components/navbar.scss';
+```
+
+#### Build Output Structure
+
+After build, assets are organized as:
+
+```
+dist/
+├── public/
+│   └── 3-mynewserver-public/
+│       ├── index-mynewserver.html   # With corrected asset paths
+│       └── logo.png                 # Static assets copied here
+├── assets/
+│   ├── mynewserver-[hash].css       # Compiled CSS
+│   ├── mynewserver-[hash].js        # Compiled JS
+│   └── logo-[hash].png              # Processed imported assets
+└── js/
+    ├── vendor-[hash].js             # Shared dependencies
+    └── socket-[hash].js             # Optional chunks
+```
+
+#### Asset Path Resolution
+
+The framework automatically handles:
+
+- **Development:** Assets served from `/public/<server>/`
+- **Production:** Assets copied to `dist/public/<server>/`
+- **HTML references:** Automatically corrected to relative paths
+- **Import resolution:** Vite processes imports during build
+
+### 4. Implement Backend
+
+Create `server/<server-name>-src/server-<server-name>.js`:
+
+```javascript
+// server/3-mynewserver-src/server-mynewserver.js
+import express from 'express';
+
+export function setupMynewserver(app, server, options) {
+  console.log(`[MYNEWSERVER] Setting up ${options.serverName}...`);
+
+  // Server-specific middleware
+  app.use('/api/mynewserver', (req, res, next) => {
+    // Only process requests for this microserver
+    if (req.targetModule !== 'mynewserver') {
+      return next();
+    }
+
+    // Your API logic here
+    res.json({ message: 'Hello from mynewserver!' });
+  });
+
+  // Return an example instance for health checks and cleanup
+  return {
+    getStats: () => ({
+      status: 'running',
+      endpoints: ['/api/mynewserver'],
+      lastActivity: new Date().toISOString()
+    }),
+
+    cleanup: () => {
+      console.log('[MYNEWSERVER] Cleaning up...');
+      // Cleanup logic here
+    }
+  };
+}
+```
+
+### 5. Implement Frontend
+
+Create main React application:
+
+```jsx
+// src/3-mynewserver-src/App-Mynewserver.jsx
+import React from 'react';
+import { Provider } from 'react-redux';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+import { store } from './store/store';
+import HomePage from './components/HomePage';
+import './styles/global.scss';
+
+const App = () => {
+  return (
+    <Provider store={store}>
+      <Router>
+        <div className="app">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
+          </Routes>
+        </div>
+      </Router>
+    </Provider>
+  );
+};
+
+export default App;
+```
+
+```jsx
+// src/3-mynewserver-src/main.jsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App-Mynewserver';
+
+// Use StrictMode on DEVELOPMENT - Remove it for PRODUCTION
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+```
+
+### 6. Create HTML Template
+
+Create `public/<server-name>-public/index-<server-name>.html`:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My New Server Title</title>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- VITE WILL TRANSPILE YOUR server's main.jsx -->
+    <script type="module" src="./src/3-mynewserver-src/main.jsx"></script>
+
+</body>
+</html>
+```
+
+### 7. Build & Deploy
+
+The system automatically:
+
+1. **Detects new configuration** in `servers.config.json`
+2. **Generates build inputs** for the new HTML entry point
+3. **Creates routing rules** based on domains
+4. **Copies static assets** to the correct output directory
+5. **Applies asset path corrections** in the final HTML
+
+```bash
+# Build with new microserver included
+npm run build
+
+# Start development with new microserver
+npm run start
+
+# Test specific microserver in development
+#    ONLY IN DEVELOPMENT:
+#    Use '?module=<SERVER_NAME>' to bypass routing
+http://localhost:7777?module=mynewserver
+```
+
+---
+
+### Asset Import Best Practices
+
+1. **Use dynamic imports** for build-time processing:   
+    `import asset from '/path/to/asset'`  
+   
+2. **Use runtime paths** only for dynamic content:  
+    `${window.location.origin}/public/...`  
+   
+3. **Place static assets** in the public directory, **not in src***
+   
+4. **Keep server-specific assets** isolated in their respective public directories
+
+---
+
+### Development vs Production Paths
+
+- **Development:** Assets served directly from `public/`
+- **Production:** Assets copied to `dist/public/` with corrected HTML references
+- **Framework handles** path resolution automatically
+
+### Naming Conventions
+
+- **Directories:** `<id>-<name>-<type>` (e.g., `3-mynewserver-src`)
+- **Files:** Descriptive names with server context
+- **Functions:** `setup<ServerName>` (e.g., `setupMynewserver`)
+- **HTML:** `index-<servername>.html`
+
+### Testing New Microservers
+
+```bash
+# Test in development
+http://localhost:7777?module=mynewserver
+
+# Test domain routing (modify hosts file)
+127.0.0.1 mynewdomain.com
+
+# Check health endpoint
+http://localhost:3001/api/health
+
+# View configuration (development only)
+http://localhost:3001/api/config
+```
 
 ---
 
@@ -200,7 +510,7 @@ Create `servers.config.json` in your project root for development:
 }
 ```
 
-### The JSON TL;DR is located here (./README)
+### The JSON TL;DR is located at ./README/
 
 ---
 
@@ -388,7 +698,7 @@ CONFIG_DEBUG_TOKEN=your-secret-debug-token
 - **Configuration not found:** Ensure secret file path is correct in production
 - **Module not loading:** Check dynamic import paths match configuration
 - **Domain routing fails:** Verify domain configuration in servers.config.json
-- **Build errors:** Ensure all HTML files exist in configured paths
+- **Build errors:** Ensure all HTML files and Assets in use exist in configured paths
 
 **Debug Endpoints:**
 
