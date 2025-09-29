@@ -23,7 +23,7 @@ const Navbar = () => {
         <nav className="navbar">
             
             <div className="navbar-brand">
-                <img src={logoSrc} className="navbar-logo" alt="Logo web" />
+                <img src={logoSrc} className="navbar-logo" alt="Logo web" onClick={ () => {window.location.reload()} } style={{ cursor:"pointer" }} />
             </div>
             
             <div className="navbar-status">
