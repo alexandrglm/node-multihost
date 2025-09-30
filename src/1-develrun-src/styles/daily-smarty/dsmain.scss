@@ -1,0 +1,72 @@
+
+
+
+
+@use './dsvariables' as *;
+@use './dsmixins';
+
+@use './dssearchBar.scss';
+@use './dsrecentPosts.scss';
+@use './dspost.scss';
+
+@use './dshome.scss';
+@use './dsresults.scss';
+
+@use './dsmodal';
+
+
+body {
+
+    font-family: 'Lato', sans-serif;
+    
+    // SOLO PARA NODE-MULTIHOST en RENDER!! HACE RESET A MAINS
+    background: #fff;
+    color: #333;
+    
+    min-height: 100vh;
+    width: 100vw;
+    
+    // RETAKE GRID AGAIN, CENTERED
+    display: grid;
+    justify-content: center;
+    align-items: start;
+    
+    padding: 0px 0px;
+    
+    overflow: auto;
+}
+
+.app-wrapper {
+
+    display: grid;
+    justify-content: center;
+
+}
+
+.logo-main,
+.recent-posts {
+
+    display: grid;
+    justify-items: center;
+    padding: 20px;
+
+}
+
+ul {
+
+    margin: 0;
+    padding: 0;
+
+    list-style-type: none;
+
+}
+
+
+.no-content{
+
+    color: $color-gray-one;
+    font-size: 14px;
+    line-height: 17px;
+
+}
+

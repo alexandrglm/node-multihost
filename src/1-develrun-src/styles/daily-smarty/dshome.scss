@@ -1,0 +1,10 @@
+// De 10-230
+@use './dsvariables' as *;
+@use './dsmixins' as *;
+
+
+.home {
+
+    @include default-page-layout
+
+}

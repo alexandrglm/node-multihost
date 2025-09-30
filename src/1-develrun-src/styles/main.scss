@@ -24,6 +24,17 @@
 @use './terminal-themes/webshell-theme-monokai';
 
 
+// DailySmartyUI multihost mode
+@use './daily-smarty/dsmixins';
+@use './daily-smarty/dsvariables' as *;
+@use './daily-smarty/dshome.scss';
+@use './daily-smarty/dsmain.scss';
+@use './daily-smarty/dspost.scss';
+@use './daily-smarty/dsrecentPosts.scss';
+@use './daily-smarty/dsresults.scss';
+@use './daily-smarty/dssearchBar.scss';
+
+
 
 
 

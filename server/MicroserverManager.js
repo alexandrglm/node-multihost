@@ -9,19 +9,19 @@
  * - Microserver instance management and registry
  * - Setup function execution with proper error handling
  * - Statistics collection and cleanup coordination
+ * - SUBMODULES: Dynamic loading and setup of microserver submodules
  *
  * Key Features:
  * - Configuration-driven module loading (no hardcoded paths)
  * - Graceful error handling for missing or broken modules
  * - Instance lifecycle management
  * - Statistics aggregation from all microservers
+ * - Submodule support for modular API separation
  *
  * Design Pattern: Registry + Factory Pattern
  * - Maintains a registry of loaded modules and instances
  * - Factory methods for creating and configuring microserver instances
  *
- * @author Your Team
- * @version 1.0.0
  */
 
 export class MicroserverManager {
@@ -39,8 +39,8 @@ export class MicroserverManager {
         this.setupFunctions = new Map();
 
         // Instance registry - stores configured microserver instances
-        // Key: microserver name (e.g., 'develrun')
-        // Value: { instance, config, setupFunction }
+        // Key: microserver name (e.g., 'develrun') OR 'parentName-submoduleName' for submodules
+        // Value: { instance, config, setupFunction, parent? }
         this.instances = new Map();
 
         // Loading state tracking
@@ -68,9 +68,9 @@ export class MicroserverManager {
      * @throws {Error} If no modules could be loaded
      */
     async loadAllModules(config) {
-        console.log('[MICROSERVER MANAGER] â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”');
+        console.log('[MICROSERVER MANAGER] ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓');
         console.log('[MICROSERVER MANAGER] STARTING DYNAMIC IMPORT PROCESS');
-        console.log('[MICROSERVER MANAGER] â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”');
+        console.log('[MICROSERVER MANAGER] ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛');
 
         this.loadedModuleCount = 0;
         this.failedModuleCount = 0;
@@ -78,6 +78,11 @@ export class MicroserverManager {
         // Process each server configuration
         for (const serverConfig of config.servers) {
             await this.loadSingleModule(serverConfig);
+            
+            // SUBMODULES: Load submodule functions if defined
+            if (serverConfig.server.submodules && serverConfig.server.submodules.length > 0) {
+                await this.loadSubmodules(serverConfig);
+            }
         }
 
         // Validate that at least some modules loaded successfully
@@ -87,12 +92,12 @@ export class MicroserverManager {
 
         this.isLoaded = true;
 
-        console.log('[MICROSERVER MANAGER] â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”');
+        console.log('[MICROSERVER MANAGER] ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓');
         console.log(`[MICROSERVER MANAGER] DYNAMIC IMPORT COMPLETED`);
         console.log(`[MICROSERVER MANAGER] Successfully loaded: ${Array.from(this.setupFunctions.keys()).join(', ')}`);
         console.log(`[MICROSERVER MANAGER] Total functions available: ${this.setupFunctions.size}`);
         console.log(`[MICROSERVER MANAGER] Success: ${this.loadedModuleCount}, Failed: ${this.failedModuleCount}`);
-        console.log('[MICROSERVER MANAGER] â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”');
+        console.log('[MICROSERVER MANAGER] ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛');
     }
 
     /**
@@ -112,12 +117,12 @@ export class MicroserverManager {
         // Extract configuration values for this microserver
         const setupFunctionName = serverConfig.server.setupFunction;  // e.g., "setupWebshell"
         const serverPath = serverConfig.paths.server;                 // e.g., "1-develrun-server"
-        const serverFile = serverConfig.server.file;                  // e.g., "server-webshell.js"
+        const serverFile = serverConfig.server.file;                  // e.g., "multihost-entry.js"
 
         // Build complete file path from configuration
         // Since MicroserverManager.js is inside server/, we need to go up one level
         // Path structure: ./{server-path}/{server-file}
-        // E.g.: ../1-develrun-server/server-webshell.js
+        // E.g.: ../1-develrun-server/multihost-entry.js
         const serverFilePath = `./${serverPath}/${serverFile}`;
 
         console.log(`[DYNAMIC-IMPORT] Processing: ${serverConfig.name}`);
@@ -131,7 +136,7 @@ export class MicroserverManager {
             // Returns a Promise that resolves to the module's exports
             const importedModule = await import(serverFilePath);
 
-            console.log(`[DYNAMIC-IMPORT]   âœ… Module imported successfully`);
+            console.log(`[DYNAMIC-IMPORT]   ✅ Module imported successfully`);
             console.log(`[DYNAMIC-IMPORT]   - Available exports:`, Object.keys(importedModule));
 
             // Extract the specific setup function from the module
@@ -149,18 +154,92 @@ export class MicroserverManager {
             this.setupFunctions.set(setupFunctionName, setupFunction);
             this.loadedModuleCount++;
 
-            console.log(`[DYNAMIC-IMPORT]   âœ… Function '${setupFunctionName}' registered successfully`);
+            console.log(`[DYNAMIC-IMPORT]   ✅ Function '${setupFunctionName}' registered successfully`);
 
         } catch (importError) {
             this.failedModuleCount++;
 
-            console.error(`[DYNAMIC-IMPORT]   âŒ Failed to import ${serverFilePath}:`);
+            console.error(`[DYNAMIC-IMPORT]   ❌ Failed to import ${serverFilePath}:`);
             console.error(`[DYNAMIC-IMPORT]      Error: ${importError.message}`);
             console.error(`[DYNAMIC-IMPORT]      This microserver will be skipped`);
 
             // Provide specific guidance for common errors
             if (importError.code === 'ERR_MODULE_NOT_FOUND') {
                 console.error(`[DYNAMIC-IMPORT]      File not found. Check that the path is correct.`);
+            }
+        }
+    }
+
+    /**
+     * SUBMODULES: Loads all submodule functions for a microserver
+     *
+     * Submodules are optional API modules that can be attached to a parent microserver.
+     * They share the same Express app and HTTP server but maintain separate route logic.
+     *
+     * Example use case: DailySmarty API as submodule of WebShell microserver
+     *
+     * @param {Object} parentConfig - Parent microserver configuration
+     * @returns {Promise<void>}
+     */
+    async loadSubmodules(parentConfig) {
+        console.log(`[SUBMODULES-IMPORT] Loading ${parentConfig.server.submodules.length} submodules for ${parentConfig.name}...`);
+
+        for (const submodule of parentConfig.server.submodules) {
+            await this.loadSingleSubmodule(submodule, parentConfig);
+        }
+    }
+
+    /**
+     * SUBMODULES: Loads a single submodule function
+     *
+     * Similar to loadSingleModule but for submodules attached to a parent microserver
+     *
+     * @param {Object} submodule - Submodule configuration
+     * @param {Object} parentConfig - Parent microserver configuration
+     * @returns {Promise<void>}
+     */
+    async loadSingleSubmodule(submodule, parentConfig) {
+        const setupFunctionName = submodule.setupFunction;
+        const serverPath = parentConfig.paths.server;
+        const submoduleFile = submodule.file;
+
+        const submoduleFilePath = `./${serverPath}/${submoduleFile}`;
+
+        console.log(`[SUBMODULES-IMPORT]   ┣━ Processing submodule: ${submodule.name}`);
+        console.log(`[SUBMODULES-IMPORT]      - Setup Function: ${setupFunctionName}`);
+        console.log(`[SUBMODULES-IMPORT]      - File Path: ${submoduleFilePath}`);
+
+        try {
+            const importedModule = await import(submoduleFilePath);
+
+            console.log(`[SUBMODULES-IMPORT]      ✅ Submodule imported successfully`);
+            console.log(`[SUBMODULES-IMPORT]      - Available exports:`, Object.keys(importedModule));
+
+            const setupFunction = importedModule[setupFunctionName];
+
+            if (typeof setupFunction !== 'function') {
+                throw new Error(
+                    `Function '${setupFunctionName}' not found in submodule ${submoduleFile}. ` +
+                    `Available: ${Object.keys(importedModule)}`
+                );
+            }
+
+            // Register submodule function with parent prefix for uniqueness
+            const registryKey = `${parentConfig.name}-${submodule.name}`;
+            this.setupFunctions.set(registryKey, setupFunction);
+            this.loadedModuleCount++;
+
+            console.log(`[SUBMODULES-IMPORT]      ✅ Submodule function '${setupFunctionName}' registered as '${registryKey}'`);
+
+        } catch (importError) {
+            this.failedModuleCount++;
+
+            console.error(`[SUBMODULES-IMPORT]      ❌ Failed to import ${submoduleFilePath}:`);
+            console.error(`[SUBMODULES-IMPORT]         Error: ${importError.message}`);
+            console.error(`[SUBMODULES-IMPORT]         This submodule will be skipped`);
+
+            if (importError.code === 'ERR_MODULE_NOT_FOUND') {
+                console.error(`[SUBMODULES-IMPORT]         File not found. Check that the path is correct.`);
             }
         }
     }
@@ -173,25 +252,26 @@ export class MicroserverManager {
      * 2. Matches each configuration with its loaded setup function
      * 3. Executes the setup function with proper parameters
      * 4. Stores the resulting instance for lifecycle management
+     * 5. SUBMODULES: Sets up any submodules after parent setup completes
      *
      * @param {Object} config - Server configuration from servers.config.json
      * @returns {Promise<void>}
      */
     async setupAllMicroservers(config) {
-        console.log('[MICROSERVER MANAGER] â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”');
+        console.log('[MICROSERVER MANAGER] ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓');
         console.log('[MICROSERVER MANAGER] STARTING MICROSERVER SETUP PROCESS');
-        console.log('[MICROSERVER MANAGER] â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”');
+        console.log('[MICROSERVER MANAGER] ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛');
 
         // Configure each microserver using the loaded setup functions
         for (const serverConfig of config.servers) {
             await this.setupSingleMicroserver(serverConfig);
         }
 
-        console.log(`[MICROSERVER MANAGER] â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”`);
+        console.log(`[MICROSERVER MANAGER] ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓`);
         console.log(`[MICROSERVER MANAGER] MICROSERVER SETUP COMPLETED`);
         console.log(`[MICROSERVER MANAGER] Active microservers: ${this.instances.size}/${config.servers.length}`);
         console.log(`[MICROSERVER MANAGER] Successfully configured: ${Array.from(this.instances.keys()).join(', ')}`);
-        console.log(`[MICROSERVER MANAGER] â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”`);
+        console.log(`[MICROSERVER MANAGER] ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛`);
     }
 
     /**
@@ -202,12 +282,13 @@ export class MicroserverManager {
      * 2. Prepare configuration options for the setup function
      * 3. Execute the setup function with Express app and HTTP server
      * 4. Store the returned instance for lifecycle management
+     * 5. SUBMODULES: Set up any configured submodules
      *
      * @param {Object} serverConfig - Configuration for a single microserver
      * @returns {Promise<void>}
      */
     async setupSingleMicroserver(serverConfig) {
-        console.log(`[MICROSERVER SETUP] â”â”â” Setting up microserver: ${serverConfig.name} (ID: ${serverConfig.id}) â”â”â”`);
+        console.log(`[MICROSERVER SETUP] ┏━━ Setting up microserver: ${serverConfig.name} (ID: ${serverConfig.id}) ━━┓`);
         console.log(`[MICROSERVER SETUP] Description: ${serverConfig.description}`);
         console.log(`[MICROSERVER SETUP] Domains: ${serverConfig.domains.join(', ')}`);
 
@@ -217,7 +298,7 @@ export class MicroserverManager {
         const setupFunction = this.setupFunctions.get(setupFunctionName);
 
         if (!setupFunction) {
-            console.error(`[MICROSERVER SETUP] âŒ Setup function '${setupFunctionName}' not found for ${serverConfig.name}`);
+            console.error(`[MICROSERVER SETUP] ❌ Setup function '${setupFunctionName}' not found for ${serverConfig.name}`);
             console.error(`[MICROSERVER SETUP] Available functions: ${Array.from(this.setupFunctions.keys()).join(', ')}`);
             console.error(`[MICROSERVER SETUP] This microserver will be skipped`);
             return;
@@ -240,8 +321,8 @@ export class MicroserverManager {
             // Execute the setup function with Express app and HTTP server
             const microserverInstance = setupFunction(
                 this.serverManager.getApp(),
-                                                      this.serverManager.getServer(),
-                                                      setupOptions
+                this.serverManager.getServer(),
+                setupOptions
             );
 
             // Store the instance in our registry
@@ -251,7 +332,7 @@ export class MicroserverManager {
                 setupFunction: setupFunctionName
             });
 
-            console.log(`[MICROSERVER SETUP] âœ… ${serverConfig.name} configured successfully`);
+            console.log(`[MICROSERVER SETUP] ✅ ${serverConfig.name} configured successfully`);
 
             // Log route configuration
             if (serverConfig.server.routes && serverConfig.server.routes.length > 0) {
@@ -260,10 +341,83 @@ export class MicroserverManager {
                 console.log(`[MICROSERVER SETUP] No specific routes configured`);
             }
 
+            // SUBMODULES: Setup submodules after parent is ready
+            if (serverConfig.server.submodules && serverConfig.server.submodules.length > 0) {
+                console.log(`[MICROSERVER SETUP] Loading ${serverConfig.server.submodules.length} submodules...`);
+                
+                for (const submodule of serverConfig.server.submodules) {
+                    await this.setupSubmodule(submodule, serverConfig);
+                }
+            }
+
         } catch (setupError) {
-            console.error(`[MICROSERVER SETUP] âŒ Failed to setup ${serverConfig.name}:`);
+            console.error(`[MICROSERVER SETUP] ❌ Failed to setup ${serverConfig.name}:`);
             console.error(`[MICROSERVER SETUP] Error: ${setupError.message}`);
             console.error(`[MICROSERVER SETUP] Stack trace:`, setupError.stack);
+        }
+    }
+
+    /**
+     * SUBMODULES: Sets up a single submodule instance
+     *
+     * Submodules are initialized after their parent microserver is ready.
+     * They receive the same Express app and HTTP server but maintain separate logic.
+     *
+     * @param {Object} submodule - Submodule configuration
+     * @param {Object} parentConfig - Parent microserver configuration
+     * @returns {Promise<void>}
+     */
+    async setupSubmodule(submodule, parentConfig) {
+        console.log(`[SUBMODULE SETUP] ┣━ Setting up submodule: ${submodule.name}`);
+        console.log(`[SUBMODULE SETUP]    - Parent: ${parentConfig.name}`);
+        console.log(`[SUBMODULE SETUP]    - Description: ${submodule.description}`);
+
+        const registryKey = `${parentConfig.name}-${submodule.name}`;
+        const setupFunction = this.setupFunctions.get(registryKey);
+
+        if (!setupFunction) {
+            console.error(`[SUBMODULE SETUP]    ❌ Setup function not found for submodule: ${registryKey}`);
+            console.error(`[SUBMODULE SETUP]    Available functions: ${Array.from(this.setupFunctions.keys()).join(', ')}`);
+            return;
+        }
+
+        console.log(`[SUBMODULE SETUP]    - Using function: ${submodule.setupFunction}`);
+
+        try {
+            // Prepare options for submodule
+            const submoduleOptions = {
+                shouldStart: false,
+                parentConfig: parentConfig,
+                submoduleConfig: submodule,
+                serverId: parentConfig.id,
+                serverName: parentConfig.name
+            };
+
+            // Execute submodule setup
+            const submoduleInstance = setupFunction(
+                this.serverManager.getApp(),
+                this.serverManager.getServer(),
+                submoduleOptions
+            );
+
+            // Store submodule instance with parent reference
+            this.instances.set(registryKey, {
+                instance: submoduleInstance,
+                config: submodule,
+                setupFunction: submodule.setupFunction,
+                parent: parentConfig.name
+            });
+
+            console.log(`[SUBMODULE SETUP]    ✅ Submodule '${submodule.name}' configured successfully`);
+
+            if (submodule.routes && submodule.routes.length > 0) {
+                console.log(`[SUBMODULE SETUP]    - Routes: ${submodule.routes.join(', ')}`);
+            }
+
+        } catch (setupError) {
+            console.error(`[SUBMODULE SETUP]    ❌ Failed to setup submodule ${submodule.name}:`);
+            console.error(`[SUBMODULE SETUP]       Error: ${setupError.message}`);
+            console.error(`[SUBMODULE SETUP]       Stack trace:`, setupError.stack);
         }
     }
 
@@ -293,6 +447,7 @@ export class MicroserverManager {
      *
      * Calls the cleanup method on each microserver instance if available.
      * Used during server shutdown to ensure proper resource cleanup.
+     * SUBMODULES: Also cleans up all submodule instances
      *
      * @returns {Promise<void>}
      */
@@ -316,11 +471,13 @@ export class MicroserverManager {
         // Wait for all cleanup operations to complete
         await Promise.allSettled(cleanupPromises);
 
-        console.log('[MICROSERVER MANAGER] âœ… All microserver cleanup completed');
+        console.log('[MICROSERVER MANAGER] ✅ All microserver cleanup completed');
     }
 
     /**
      * Retrieves statistics from all microserver instances
+     *
+     * SUBMODULES: Stats include both parent microservers and their submodules
      *
      * @returns {Object} Aggregated statistics from all microservers
      */
@@ -333,7 +490,11 @@ export class MicroserverManager {
                 if (serverInstance.instance && typeof serverInstance.instance.getStats === 'function') {
                     stats[serverName] = serverInstance.instance.getStats();
                 } else {
-                    stats[serverName] = { status: 'running', hasStats: false };
+                    stats[serverName] = { 
+                        status: 'running', 
+                        hasStats: false,
+                        isSubmodule: !!serverInstance.parent
+                    };
                 }
             } catch (error) {
                 stats[serverName] = { status: 'error', error: error.message };

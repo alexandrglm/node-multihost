@@ -1,0 +1,96 @@
+// De 10-226
+
+@use 'sass:map';
+@use './dsvariables' as *;
+@use './dsmixins' as *;
+
+.search-bar {
+
+    display: grid;
+
+    .search-bar__wrapper {
+
+        display: grid;
+        grid-row-gap: 23px;
+        
+        width: 100%;
+
+        input {
+        
+            padding-left: 35px;
+            color: $color-gray-one;
+
+            box-shadow: 2px 3px 20px 1px rgba(0, 0, 0, 0.1);
+            border: 0px solid transparent;
+            border-radius: 5px;
+    
+            //height: 118px;
+            //font-size: 40px;
+    
+            transition: all .2s ease;
+    
+            &::placeholder {
+        
+                color: $color-gray-two;
+                // LA FORMA DE AÑADIR FONTAESOME DESDE CSS USADO COMO FONT!!!!! NO LO HABIA VISTO NUNCA ANTES, lo paso a version 5
+                font-family: "Font Awesome\ 6 Free", "Lato", sans-serif;
+                //Font Awesome requiere `font-weight: 600` para mostrar iconos correctamente en placeholders.
+                font-weight: 600;
+            }
+    
+            &:focus {
+        
+                outline: none;
+                box-shadow: 2px 3px 20px 1px rgba(0, 0, 0, 0.3);
+            }
+        }
+    
+        p {
+            text-align: right;
+            //font-size: 14px;
+            color: $color-gray-two;
+        }
+
+        img {
+            margin-left: 100px;
+        }
+    }
+}
+
+
+.search-bar__home {
+
+    align-content: start;
+    justify-items: center;
+
+    input {
+
+        font-size: 20px;
+        height: 60px;
+
+        @media screen and (max-width: 600px ){
+
+            font-size: 23px;
+            height: 59px;
+
+        }
+    }
+}
+
+
+.search-bar__results {
+
+    align-content: start;
+    justify-items: center;
+
+    input {
+
+        font-size: 18px;
+        height: 36px;
+        
+        margin: 2px 0 0 0;
+
+
+    }
+
+}

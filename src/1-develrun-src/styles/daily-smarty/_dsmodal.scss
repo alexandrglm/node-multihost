@@ -1,0 +1,191 @@
+@use './dsvariables' as *;
+
+// FLOTANTE
+.ds-info-button {
+    
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    
+    width: 80px;
+    height: 80px;
+    
+    background: $accent-modal;
+    color: white;
+    
+    border: none;
+    border-radius: 50%;
+    
+    font-size: 24px;
+    
+    cursor: pointer;
+    
+    box-shadow: 0 4px 12px rgba(0, 121, 255, 0.3);
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(0, 121, 255, 0.5);
+    }
+}
+
+// OVerlay resto
+.ds-modal-overlay {
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    
+    background: $color-gray-three;
+    backdrop-filter: blur(40px);
+    
+    z-index: 1000;
+    
+    animation: fadeIn 0.2s ease;
+}
+
+.ds-modal-content {
+    
+    position: relative;
+    
+    background: $modal-bg;  
+    
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    
+    max-width: 800px;
+    
+    //width: 50%;
+    max-height: 90vh;
+    
+    padding: 40px;
+    
+    overflow-y: auto;
+    
+    animation: slideUp 0.3s ease;
+}
+
+
+.ds-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+
+    width: 35px;
+    height: 35px;
+    
+    background: transparent;
+    color: $color-gray-two;
+    
+    border: none;
+    border-radius: 50%;
+    
+    font-size: 20px;
+    
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: $color-gray-three;
+        color: $color-gray-one;
+    }
+}
+
+.ds-modal-header {
+
+    display: flex;
+    align-items: center;
+
+    gap: 15px;
+    
+    margin-bottom: 25px;
+    
+    .ds-modal-icon {
+
+        font-size: 36px;
+        color: $color-gray-one;
+
+    }
+
+    h2 {
+        color: $color-gray-one;
+        font-size: 24px;
+        margin: 0;
+    }
+}
+
+
+.ds-modal-body {
+
+    color: $color-gray-one;
+    line-height: 1.6;
+
+    p {
+    
+        margin-bottom: 15px;
+    
+    }
+
+    ul {
+    
+        list-style: none;
+    
+        padding: 0;
+        margin: 20px 20px;
+
+        li {
+    
+            padding: 8px 0;
+            font-size: 15px;
+        }
+
+        svg {
+
+            font-size: 15px;
+            margin-right: 20px;
+        }
+    }
+
+    .ds-modal-note {
+
+        background: $color-gray-three;
+        border-left: 4px solid $color-blue-one;
+        padding: 15px;
+        margin-top: 20px;
+        border-radius: 4px;
+        
+        strong {
+        
+            color: $color-blue-one;
+        
+        }
+    }
+}
+
+
+@keyframes fadeIn {
+
+    from { opacity: 0; }
+    to { opacity: 1; }
+
+}
+
+@keyframes slideUp {
+
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}   

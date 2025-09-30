@@ -12,7 +12,8 @@ import {
     faHeartCrack,
     faCircleInfo,
     faArrowUp,
-    faArrowDown
+    faArrowDown,
+    
 
 } from '@fortawesome/free-solid-svg-icons'
 
