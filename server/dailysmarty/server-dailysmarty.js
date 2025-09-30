@@ -2,6 +2,8 @@
 // server-dailysmarty.js - DailySmarty API Setup
 // ============================================
 import path from 'path';
+import cors from 'cors';
+
 import { fileURLToPath } from 'url';
 
 import { DailySmartyAPI } from './DailySmartyAPI.js';
@@ -11,6 +13,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export function setupDailySmarty(app, server, options = {}) {
 
     console.log('[DAILYSMARTY] Initializing DailySmarty API...');
+
+    // OPEN CORS (due to picsum.photos GET CORS errors)
+    app.use(cors({
+        origin: '*',
+        methods: ['GET','POST','PUT','DELETE'],
+        allowedHeaders: ['Content-Type']
+    }));
+
 
     // ============================================
     // API SETUP
