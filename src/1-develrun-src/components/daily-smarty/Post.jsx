@@ -37,13 +37,10 @@ function Post({ type, title, url_for_post, associated_topics, post_links }) {
 
 
 	// NEW IDEA -> Url Thumbs will be random Picsum.photos/200/200
-	const randomThumbUrl = () => {
-
-
-		return `https://picsum.photos/200/200?random=${ Math.random() }`
-
-
-	}
+	// 	const randomThumbUrl = () => {
+	// 		return 'https://picsum.photos/200/200'
+	// 	}
+	const randomThumbUrl = () => 'https://picsum.photos/200/200';
 	
 	const renderLinks = () => {
 	
