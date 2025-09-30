@@ -130,7 +130,14 @@ export default defineConfig({
                                       if (!file.endsWith('.html')) {
                                         const sourcePath = path.join(sourceDir, file);
                                         const targetPath = path.join(targetDir, file);
-                                        fs.copyFileSync(sourcePath, targetPath);
+
+                                        const stat = fs.statSync(sourcePath);
+                                        if (stat.isDirectory()) {
+                                          fs.cpSync(sourcePath, targetPath, { recursive: true });
+                                        } else {
+                                          fs.copyFileSync(sourcePath, targetPath);
+                                        }
+
                                         console.log(`[ASSETS] Copied: ${file} -> public/${serverConfig.paths.public}/`);
                                       }
                                     });
